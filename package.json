@@ -69,6 +69,11 @@
           "type": "boolean",
           "default": false,
           "description": "Final variable on the last line"
+        },
+        "sqltostringdelphi.LocalVariables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Identify parameters in the string to be used as local variables"
         }
       }
     }

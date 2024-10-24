@@ -1,17 +1,26 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
+	const config = vscode.workspace.getConfiguration('sqltostringdelphi');
+	const initialVar: string = config.get<string>('InitialVariable')!;
+	const finalVar: string = config.get<string>('FinalVariable')!;
+	const largestLine: boolean = config.get<boolean>('ConsiderTheLargestLine')!;
+	const initialVarFirstLine: boolean = config.get<boolean>('InitialVariableFirstLine')!;
+	const finalVarLastLine: boolean = config.get<boolean>('FinalVariableLastLine')!;
+	const localVariables: boolean = config.get<boolean>('LocalVariables')!;
 
 	let DelphiToSQL = vscode.commands.registerCommand('sqltostringdelphi.DelphiToSQL', () => {
         const editor = vscode.window.activeTextEditor;
-
+		
         if (editor) {
             const selection = editor.selection;
             const selectedText = editor.document.getText(selection);
 
 			if (selectedText.length > 0) {
 				const lines = selectedText.split('\r\n');
+				const arrayVariables: string[] = [];
 				const linesReplace: string[] = [];
+				const param = /(@\w+)/g;
 
 				lines.forEach(line => {
 					if (line.length > 0) {
@@ -19,6 +28,17 @@ export function activate(context: vscode.ExtensionContext) {
 						lineAux = lineAux.replaceAll(':', '@');
 
 						let startPos = lineAux.indexOf("'");
+						let match;
+
+						if (localVariables) {
+							while ((match = param.exec(lineAux)) !== null) {
+								let varDeclare = match[0];
+
+								if (!arrayVariables.includes(varDeclare)) {
+									arrayVariables.push(varDeclare);
+								}
+							}
+						}
 
 						if (startPos != -1){
 							let finalPos = startPos;
@@ -35,6 +55,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 				if (linesReplace.length > 0) {
 					editor.edit(editBuilder => {
+						if (arrayVariables.length > 0) {
+							for (var i = 0; i < arrayVariables.length; i++) {
+								if (i > 0) {
+									arrayVariables[i] = ', ' + arrayVariables[i];
+								}
+							}
+
+							arrayVariables.splice(0, 0, '/*');
+							arrayVariables.splice(1, 0, 'DECLARE');
+							arrayVariables.splice(arrayVariables.length, 0, '*/');
+
+							linesReplace.splice(0, 0, arrayVariables.join('\n').toString());
+						}
+						
 						editBuilder.replace(selection, linesReplace.join('\n'));
 					});
 				}
@@ -48,13 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (editor) {
             const selection = editor.selection;
             const selectedText = editor.document.getText(selection);
-
-			const config = vscode.workspace.getConfiguration('sqltostringdelphi');
-			const initialVar: string = config.get<string>('InitialVariable')!;
-			const finalVar: string = config.get<string>('FinalVariable')!;
-			const largestLine: boolean = config.get<boolean>('ConsiderTheLargestLine')!;
-			const initialVarFirstLine: boolean = config.get<boolean>('InitialVariableFirstLine')!;
-			const finalVarLastLine: boolean = config.get<boolean>('FinalVariableLastLine')!;
 
 			if (selectedText.length > 0) {
 				const lines = selectedText.split('\r\n');
