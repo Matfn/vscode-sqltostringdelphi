@@ -14,9 +14,4 @@ Convert SQL query to simple String in Delphi.
 * `sqltostringdelphi.ConsiderTheLargestLine`: considers the line that has the largest amount of text to inform the end of the String.
 * `sqltostringdelphi.InitialVariableFirstLine`: does not display the text of the "Initial Variable" field in the first line.
 * `sqltostringdelphi.FinalVariableLastLine`: does not display the text of the "Final Variable" field in the last line.
-
-## Release Notes
-
-### 1.0.0
-
-Initial release of SQL To String Delphi.
+* `sqltostringdelphi.LocalVariables`: Identify parameters in the string to be used as local variables.
